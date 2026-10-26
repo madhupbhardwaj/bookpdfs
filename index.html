@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Bookshelf</title>
+<style>
+  :root {
+    --bg: #faf7f2; --ink: #2b2118; --muted: #7a6a5a; --card: #ffffff; --accent: #b4532a;
+    --line: #e8dfd3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1a1612; --ink: #f1e9df; --muted: #a09182; --card: #241f19; --accent: #e08a5e; --line: #352d24; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: Georgia, "Times New Roman", serif; }
+  header { max-width: 1000px; margin: 0 auto; padding: 56px 20px 24px; }
+  h1 { font-size: 2.4rem; margin: 0 0 8px; letter-spacing: -0.5px; }
+  .sub { color: var(--muted); margin: 0 0 24px; font-style: italic; }
+  input[type="search"] {
+    width: 100%; max-width: 420px; padding: 11px 14px; font-size: 1rem;
+    border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink);
+    font-family: system-ui, sans-serif;
+  }
+  main { max-width: 1000px; margin: 0 auto; padding: 8px 20px 60px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 22px; }
+  .book { background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+          display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s; }
+  .book:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.12); }
+  .cover { aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; padding: 16px;
+           text-align: center; color: #fff; font-size: 1.15rem; font-weight: bold; line-height: 1.25; word-break: break-word; }
+  .info { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .title { font-size: .95rem; line-height: 1.3; }
+  .size { font-family: system-ui, sans-serif; font-size: .75rem; color: var(--muted); }
+  .actions { display: flex; gap: 8px; margin-top: auto; font-family: system-ui, sans-serif; }
+  .actions a { flex: 1; text-align: center; padding: 7px 0; font-size: .82rem; border-radius: 6px;
+               text-decoration: none; border: 1px solid var(--accent); }
+  .actions a.read { background: var(--accent); color: #fff; }
+  .actions a.dl { color: var(--accent); }
+  .msg { color: var(--muted); font-family: system-ui, sans-serif; padding: 30px 0; }
+  footer { text-align: center; color: var(--muted); font-size: .8rem; padding-bottom: 40px; font-family: system-ui, sans-serif; }
+</style>
+</head>
+<body>
+<header>
+  <h1>My Bookshelf</h1>
+  <p class="sub">Books I love, free to read.</p>
+  <input type="search" id="q" placeholder="Search books…" autocomplete="off">
+</header>
+<main>
+  <div id="grid" class="grid"></div>
+  <p id="msg" class="msg">Loading…</p>
+</main>
+<footer><span id="count"></span></footer>
+
+<script>
+/* ---- Config ----
+   Leave as-is when hosted on GitHub Pages: owner and repo are detected from the URL.
+   If you use a custom domain or test locally, fill these in. */
+const CONFIG = { owner: "", repo: "", branch: "", folder: "books" };
+
+function detectRepo() {
+  if (CONFIG.owner && CONFIG.repo) return CONFIG;
+  const host = location.hostname;
+  if (host.endsWith(".github.io")) {
+    const owner = host.split(".")[0];
+    const first = location.pathname.split("/").filter(Boolean)[0];
+    const repo = first || host; // user site: repo is owner.github.io
+    return { ...CONFIG, owner, repo };
+  }
+  return null;
+}
+
+const COLORS = ["#b4532a","#2f6f6a","#5b4b8a","#8a3b4d","#3f6b3a","#a0762a","#3a5a8a","#6b4a3a"];
+function colorFor(s) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return COLORS[h % COLORS.length]; }
+function prettyTitle(name) { return name.replace(/\.pdf$/i, "").replace(/[_]+/g, " ").replace(/\s+-\s+/g, " — ").replace(/\s+/g, " ").trim(); }
+function fmtSize(b) { return b > 1048576 ? (b / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1024)) + " KB"; }
+function esc(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+let books = [];
+
+function render() {
+  const q = document.getElementById("q").value.toLowerCase();
+  const list = books.filter(b => b.title.toLowerCase().includes(q));
+  document.getElementById("grid").innerHTML = list.map(b => `
+    <div class="book">
+      <div class="cover" style="background:${colorFor(b.title)}">${esc(b.title)}</div>
+      <div class="info">
+        <div class="title">${esc(b.title)}</div>
+        <div class="size">${fmtSize(b.size)}</div>
+        <div class="actions">
+          <a class="read" href="${b.url}" target="_blank" rel="noopener">Read</a>
+          <a class="dl" href="${b.url}" download>Download</a>
+        </div>
+      </div>
+    </div>`).join("");
+  const msg = document.getElementById("msg");
+  msg.style.display = list.length ? "none" : "block";
+  if (!list.length) msg.textContent = books.length ? "No books match your search." : "No books yet — add PDFs to the books/ folder.";
+  document.getElementById("count").textContent = books.length ? books.length + " book" + (books.length > 1 ? "s" : "") : "";
+}
+
+async function load() {
+  const msg = document.getElementById("msg");
+  const cfg = detectRepo();
+  if (!cfg) { msg.textContent = "Set owner and repo in CONFIG at the top of the script in index.html."; return; }
+  try {
+    const branchQ = cfg.branch ? "?ref=" + encodeURIComponent(cfg.branch) : "";
+    const res = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${cfg.folder}${branchQ}`);
+    if (!res.ok) throw new Error(res.status);
+    const files = await res.json();
+    books = files
+      .filter(f => f.type === "file" && /\.pdf$/i.test(f.name))
+      .map(f => ({ title: prettyTitle(f.name), size: f.size, url: `${cfg.folder}/${encodeURIComponent(f.name)}` }))
+      .sort((a, b) => a.title.localeCompare(b.title));
+    render();
+  } catch (e) {
+    msg.textContent = "Couldn't load the book list (GitHub may be rate-limiting). Try again in a bit.";
+  }
+}
+
+document.getElementById("q").addEventListener("input", render);
+load();
+</script>
+</body>
+</html>

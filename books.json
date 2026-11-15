@@ -1,0 +1,56 @@
+[
+  {
+    "title": "A Course of Pure Mathematics",
+    "author": "G. H. Hardy",
+    "year": 1921,
+    "topics": ["Analysis"],
+    "pages": 587,
+    "note": "The classic introduction to rigorous analysis. Public domain (Project Gutenberg).",
+    "file": "books/courseofpuremaths-ghhardy.pdf"
+  },
+  {
+    "title": "Calculus on Manifolds",
+    "author": "Michael Spivak",
+    "year": 1965,
+    "topics": ["Analysis", "Geometry"],
+    "pages": 158,
+    "note": "A modern approach to the classical theorems of advanced calculus.",
+    "file": "books/spivak-calculus-on-manifolds.pdf"
+  },
+  {
+    "title": "Mathematical Circles",
+    "subtitle": "Russian Experience",
+    "author": "Fomin, Genkin & Itenberg",
+    "year": 1996,
+    "topics": ["Problem Solving"],
+    "pages": 286,
+    "file": "books/mathematicalcircles.pdf"
+  },
+  {
+    "title": "Olympiad Arena",
+    "subtitle": "Question Bank",
+    "author": "D. K. Tripathi & A. Arora",
+    "year": 2026,
+    "topics": ["Olympiad", "Problem Solving"],
+    "pages": 110,
+    "note": "Problem sets and mock tests for IOQM, RMO and INMO.",
+    "file": "books/olympiadquestions.pdf"
+  },
+  {
+    "title": "Proofs",
+    "subtitle": "A Long-Form Mathematics Textbook",
+    "author": "Jay Cummings",
+    "year": 2021,
+    "topics": ["Proofs"],
+    "pages": 330,
+    "file": "books/proofs-jaycummings.pdf"
+  },
+  {
+    "title": "Putnam and Beyond",
+    "author": "Răzvan Gelca & Titu Andreescu",
+    "year": 2007,
+    "topics": ["Olympiad", "Problem Solving"],
+    "pages": 807,
+    "file": "books/putnam-and-beyond.pdf"
+  }
+]

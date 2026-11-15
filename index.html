@@ -4,123 +4,513 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>My Bookshelf</title>
+<meta name="description" content="A small library of favourite mathematics books.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%23b4532a'/><text x='32' y='46' font-size='40' text-anchor='middle' fill='white' font-family='Georgia,serif'>∫</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #faf7f2; --ink: #2b2118; --muted: #7a6a5a; --card: #ffffff; --accent: #b4532a;
-    --line: #e8dfd3;
+    --bg: #f7f3ec; --bg-2: #efe8dc; --ink: #241c15; --muted: #75685b; --card: #fffdf9;
+    --accent: #b4532a; --accent-ink: #fff; --line: #e3d9ca; --shadow: 0 1px 2px rgba(60,40,20,.06), 0 8px 24px rgba(60,40,20,.08);
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #1a1612; --ink: #f1e9df; --muted: #a09182; --card: #241f19; --accent: #e08a5e; --line: #352d24; }
+    :root:not([data-theme="light"]) {
+      --bg: #17130f; --bg-2: #1f1a15; --ink: #f1e9df; --muted: #a39484; --card: #221c17;
+      --accent: #e28a5c; --accent-ink: #1a120c; --line: #352c23; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
   }
+  :root[data-theme="dark"] {
+    --bg: #17130f; --bg-2: #1f1a15; --ink: #f1e9df; --muted: #a39484; --card: #221c17;
+    --accent: #e28a5c; --accent-ink: #1a120c; --line: #352c23; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font-family: Georgia, "Times New Roman", serif; }
-  header { max-width: 1000px; margin: 0 auto; padding: 56px 20px 24px; }
-  h1 { font-size: 2.4rem; margin: 0 0 8px; letter-spacing: -0.5px; }
-  .sub { color: var(--muted); margin: 0 0 24px; font-style: italic; }
-  input[type="search"] {
-    width: 100%; max-width: 420px; padding: 11px 14px; font-size: 1rem;
-    border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink);
-    font-family: system-ui, sans-serif;
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.5; }
+  a { color: inherit; }
+  button { font: inherit; color: inherit; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- Header ---------- */
+  header.hero { padding: 56px 0 28px; border-bottom: 1px solid var(--line);
+    background:
+      radial-gradient(1200px 300px at 10% -20%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%),
+      var(--bg); }
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+  .eyebrow { font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin: 0 0 10px; }
+  h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.05; margin: 0; letter-spacing: -.02em; }
+  h1 em { color: var(--accent); }
+  .sub { font-family: var(--serif); color: var(--muted); font-size: 1.15rem; margin: 12px 0 0; max-width: 560px; }
+  .stats { display: flex; gap: 22px; margin-top: 22px; font-size: .85rem; color: var(--muted); flex-wrap: wrap; }
+  .stats b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .icon-btn { width: 40px; height: 40px; flex: none; border-radius: 10px; border: 1px solid var(--line); background: var(--card);
+    display: grid; place-items: center; cursor: pointer; }
+  .icon-btn:hover { border-color: var(--accent); }
+  .icon-btn svg { width: 18px; height: 18px; }
+
+  /* ---------- Toolbar ---------- */
+  .toolbar { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .toolbar .wrap { display: flex; gap: 12px; align-items: center; padding-top: 12px; padding-bottom: 12px; flex-wrap: wrap; }
+  .search { position: relative; flex: 1 1 260px; min-width: 0; }
+  .search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--muted); }
+  .search input { width: 100%; padding: 10px 40px 10px 36px; font: inherit; font-size: .95rem; border: 1px solid var(--line);
+    border-radius: 10px; background: var(--card); color: var(--ink); }
+  .search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+  .search kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font: 500 .72rem var(--sans); color: var(--muted);
+    border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; background: var(--bg); }
+  select { font: inherit; font-size: .88rem; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--card); }
+  .seg button { border: 0; background: none; padding: 8px 10px; cursor: pointer; color: var(--muted); display: grid; place-items: center; }
+  .seg button[aria-pressed="true"] { background: var(--bg-2); color: var(--ink); }
+  .seg svg { width: 16px; height: 16px; }
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding: 0 0 12px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 5px 13px; font-size: .82rem;
+    cursor: pointer; color: var(--muted); }
+  .chip:hover { color: var(--ink); }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .chip span { opacity: .6; margin-left: 4px; font-variant-numeric: tabular-nums; }
+
+  /* ---------- Sections ---------- */
+  main { padding: 28px 0 70px; }
+  .section-title { font-family: var(--serif); font-size: 1.25rem; font-weight: 500; margin: 0 0 14px; display: flex; align-items: baseline; gap: 10px; }
+  .section-title small { font-family: var(--sans); font-size: .78rem; color: var(--muted); font-weight: 400; }
+  #recent { margin-bottom: 36px; }
+  .recent-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+  .recent-item { flex: none; display: flex; gap: 12px; align-items: center; width: 270px; padding: 10px; border: 1px solid var(--line);
+    border-radius: 12px; background: var(--card); cursor: pointer; text-align: left; }
+  .recent-item:hover { border-color: var(--accent); }
+  .recent-item .cover { width: 42px; border-radius: 3px 5px 5px 3px; flex: none; padding: 0; }
+  .recent-item .cover > * { display: none; }
+  .recent-item .t { font-family: var(--serif); font-size: .98rem; line-height: 1.2; }
+  .recent-item .a { font-size: .76rem; color: var(--muted); }
+
+  /* ---------- Grid ---------- */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 34px 26px; }
+  .book { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .cover-btn { border: 0; padding: 0; background: none; cursor: pointer; display: block; width: 100%; border-radius: 4px 8px 8px 4px; }
+  .cover {
+    --c: #b4532a; position: relative; aspect-ratio: 2 / 3; border-radius: 4px 8px 8px 4px; overflow: hidden; color: #fff;
+    background:
+      linear-gradient(90deg, rgba(0,0,0,.28) 0, rgba(0,0,0,.08) 5%, rgba(255,255,255,.12) 6.5%, transparent 9%),
+      linear-gradient(160deg, color-mix(in srgb, var(--c) 82%, #fff) 0%, var(--c) 45%, color-mix(in srgb, var(--c) 70%, #000) 100%);
+    box-shadow: var(--shadow), inset 0 0 0 1px rgba(255,255,255,.06);
+    transition: transform .25s cubic-bezier(.2,.7,.3,1), box-shadow .25s;
+    display: flex; flex-direction: column; padding: 14% 12% 11% 17%; text-align: left;
   }
-  main { max-width: 1000px; margin: 0 auto; padding: 8px 20px 60px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 22px; }
-  .book { background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
-          display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s; }
-  .book:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.12); }
-  .cover { aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; padding: 16px;
-           text-align: center; color: #fff; font-size: 1.15rem; font-weight: bold; line-height: 1.25; word-break: break-word; }
-  .info { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-  .title { font-size: .95rem; line-height: 1.3; }
-  .size { font-family: system-ui, sans-serif; font-size: .75rem; color: var(--muted); }
-  .actions { display: flex; gap: 8px; margin-top: auto; font-family: system-ui, sans-serif; }
-  .actions a { flex: 1; text-align: center; padding: 7px 0; font-size: .82rem; border-radius: 6px;
-               text-decoration: none; border: 1px solid var(--accent); }
-  .actions a.read { background: var(--accent); color: #fff; }
-  .actions a.dl { color: var(--accent); }
-  .msg { color: var(--muted); font-family: system-ui, sans-serif; padding: 30px 0; }
-  footer { text-align: center; color: var(--muted); font-size: .8rem; padding-bottom: 40px; font-family: system-ui, sans-serif; }
+  .cover-btn:hover .cover, .cover-btn:focus-visible .cover { transform: translateY(-5px) rotate(-.6deg);
+    box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 22px 40px rgba(60,40,20,.22); }
+  .cover .glyph { position: absolute; right: -6%; bottom: -10%; font-family: var(--serif); font-size: 9.5rem; line-height: 1; opacity: .13;
+    pointer-events: none; font-style: italic; }
+  .cover .rule { width: 34%; height: 2px; background: rgba(255,255,255,.55); margin-bottom: 14px; }
+  .cover .ct { font-family: var(--serif); font-weight: 500; font-size: clamp(1.05rem, 1.5vw, 1.32rem); line-height: 1.12; letter-spacing: -.01em;
+    text-wrap: balance; overflow-wrap: anywhere; }
+  .cover .cs { font-family: var(--serif); font-style: italic; font-size: .82rem; opacity: .82; margin-top: 8px; line-height: 1.25; }
+  .cover .ca { margin-top: auto; font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; opacity: .85; font-weight: 500; }
+  .meta { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .meta .t { font-family: var(--serif); font-size: 1.06rem; font-weight: 500; line-height: 1.2; }
+  .meta .a { font-size: .82rem; color: var(--muted); }
+  .meta .d { font-size: .74rem; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+  .meta .d span + span::before { content: "·"; margin-right: 8px; opacity: .6; }
+  .actions { display: flex; gap: 8px; margin-top: 2px; }
+  .btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 10px; font-size: .82rem; font-weight: 500;
+    border-radius: 8px; text-decoration: none; border: 1px solid var(--line); background: var(--card); cursor: pointer; white-space: nowrap; }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .btn.primary:hover { filter: brightness(1.07); color: var(--accent-ink); }
+  .btn svg { width: 14px; height: 14px; }
+
+  /* list view */
+  .grid.list { grid-template-columns: 1fr; gap: 0; }
+  .grid.list .book { flex-direction: row; align-items: center; gap: 18px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .grid.list .cover-btn { width: 54px; flex: none; }
+  .grid.list .cover { padding: 0; }
+  .grid.list .cover > * { display: none; }
+  .grid.list .meta { flex: 1; min-width: 0; }
+  .grid.list .note { display: block; }
+  .grid.list .actions { flex: none; width: 220px; }
+  .note { display: none; font-size: .82rem; color: var(--muted); margin-top: 2px; font-family: var(--serif); font-style: italic; }
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 16px; }
+    .grid.list .actions { width: auto; flex-direction: column; }
+    .grid.list .note { display: none; }
+    .btn .lbl-long { display: none; }
+    header.hero { padding-top: 36px; }
+    .search kbd { display: none; }
+  }
+
+  .empty { text-align: center; padding: 60px 0; color: var(--muted); font-family: var(--serif); font-size: 1.1rem; }
+  .empty button { margin-top: 12px; }
+  footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; padding: 26px 0 40px; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+  /* skeleton */
+  .sk .cover { background: var(--bg-2); box-shadow: none; animation: pulse 1.4s ease-in-out infinite; }
+  .sk .bar { height: 12px; border-radius: 4px; background: var(--bg-2); margin-top: 6px; animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .55; } }
+
+  /* ---------- Reader ---------- */
+  dialog#reader { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: var(--bg); color: var(--ink); }
+  dialog#reader::backdrop { background: rgba(10,8,6,.6); }
+  .reader { display: flex; flex-direction: column; height: 100%; }
+  .reader-bar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--card); }
+  .reader-bar .rt { flex: 1; min-width: 0; }
+  .reader-bar .rt b { display: block; font-family: var(--serif); font-weight: 500; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .reader-bar .rt small { color: var(--muted); font-size: .78rem; }
+  .reader-bar .btn { flex: none; }
+  .reader iframe { flex: 1; width: 100%; border: 0; background: #525659; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
-<header>
-  <h1>My Bookshelf</h1>
-  <p class="sub">Books I love, free to read.</p>
-  <input type="search" id="q" placeholder="Search books…" autocomplete="off">
+
+<header class="hero">
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <p class="eyebrow">A personal library</p>
+        <h1>My <em>Mathematics</em> Bookshelf</h1>
+        <p class="sub">Books I love — analysis, proofs and problem solving — free to read in the browser.</p>
+      </div>
+      <button class="icon-btn" id="themeBtn" title="Toggle light/dark" aria-label="Toggle colour theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
+      </button>
+    </div>
+    <div class="stats" id="stats"></div>
+  </div>
 </header>
-<main>
-  <div id="grid" class="grid"></div>
-  <p id="msg" class="msg">Loading…</p>
+
+<div class="toolbar">
+  <div class="wrap">
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="q" placeholder="Search by title, author or topic…" autocomplete="off" aria-label="Search books">
+      <kbd>/</kbd>
+    </label>
+    <select id="sort" aria-label="Sort books">
+      <option value="title">Title A–Z</option>
+      <option value="author">Author</option>
+      <option value="year">Oldest first</option>
+      <option value="pages">Shortest first</option>
+      <option value="recent">Recently opened</option>
+    </select>
+    <div class="seg" role="group" aria-label="Layout">
+      <button id="gridBtn" aria-pressed="true" title="Grid view" aria-label="Grid view">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </button>
+      <button id="listBtn" aria-pressed="false" title="List view" aria-label="List view">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="wrap"><div class="chips" id="chips" role="group" aria-label="Filter by topic"></div></div>
+</div>
+
+<main class="wrap">
+  <section id="recent" hidden>
+    <h2 class="section-title">Continue reading</h2>
+    <div class="recent-row" id="recentRow"></div>
+  </section>
+  <h2 class="section-title" id="shelfTitle">All books <small id="shown"></small></h2>
+  <div id="grid" class="grid" aria-live="polite"></div>
+  <div id="empty" class="empty" hidden></div>
 </main>
-<footer><span id="count"></span></footer>
+
+<footer>
+  <div class="wrap">
+    <span>Press <b>/</b> to search · <b>Esc</b> to close the reader</span>
+    <span id="foot"></span>
+  </div>
+</footer>
+
+<dialog id="reader" aria-label="PDF reader">
+  <div class="reader">
+    <div class="reader-bar">
+      <div class="rt"><b id="rTitle"></b><small id="rAuthor"></small></div>
+      <a class="btn" id="rOpen" target="_blank" rel="noopener" title="Open in new tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg>
+        <span class="lbl-long">New tab</span>
+      </a>
+      <a class="btn" id="rDl" title="Download">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
+        <span class="lbl-long">Download</span>
+      </a>
+      <button class="btn primary" id="rClose" aria-label="Close reader">Close</button>
+    </div>
+    <iframe id="rFrame" title="Book"></iframe>
+  </div>
+</dialog>
 
 <script>
-/* ---- Config ----
-   Leave as-is when hosted on GitHub Pages: owner and repo are detected from the URL.
-   If you use a custom domain or test locally, fill these in. */
-const CONFIG = { owner: "", repo: "", branch: "", folder: "books" };
+/* =====================================================================
+   CONFIG
+   - books.json is the catalog. Each entry needs a title and ONE source:
+       "file":  "books/x.pdf"            → PDF stored in this repo
+       "url":   "https://…/x.pdf"        → any direct PDF link (GitHub Release,
+                                            Cloudflare R2, Internet Archive, …)
+       "drive": "<Google Drive file id>"  → file shared "Anyone with the link"
+   - Any PDF dropped in books/ that isn't in books.json still shows up
+     automatically (when hosted on GitHub Pages), titled from its filename.
+   ===================================================================== */
+const CONFIG = { owner: "", repo: "", branch: "", folder: "books", catalog: "books.json" };
+
+const PALETTE = ["#9c4a26", "#2d6863", "#56478a", "#87354a", "#3c6738", "#946c22", "#33558a", "#6b4636", "#3f5f66", "#7a4f7a"];
+const GLYPHS = { "Analysis": "∫", "Geometry": "∇", "Proofs": "∎", "Olympiad": "∑", "Problem Solving": "?", "Algebra": "≅",
+                 "Number Theory": "ℤ", "Combinatorics": "!", "Topology": "∮", "Probability": "ℙ", "Linear Algebra": "λ" };
+const RECENT_KEY = "bookshelf.recent", VIEW_KEY = "bookshelf.view", THEME_KEY = "bookshelf.theme";
+
+const $ = s => document.querySelector(s);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const hash = s => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
+const fmtSize = b => b > 1048576 ? (b / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1024)) + " KB";
+const prettyTitle = n => n.replace(/\.pdf$/i, "").replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim().replace(/\b\w/g, c => c.toUpperCase());
+const isMobile = () => matchMedia("(max-width: 760px), (pointer: coarse)").matches;
 
 function detectRepo() {
   if (CONFIG.owner && CONFIG.repo) return CONFIG;
   const host = location.hostname;
-  if (host.endsWith(".github.io")) {
-    const owner = host.split(".")[0];
-    const first = location.pathname.split("/").filter(Boolean)[0];
-    const repo = first || host; // user site: repo is owner.github.io
-    return { ...CONFIG, owner, repo };
-  }
-  return null;
+  if (!host.endsWith(".github.io")) return null;
+  const owner = host.split(".")[0];
+  const first = location.pathname.split("/").filter(Boolean)[0];
+  return { ...CONFIG, owner, repo: first && !first.includes(".") ? first : host };
 }
 
-const COLORS = ["#b4532a","#2f6f6a","#5b4b8a","#8a3b4d","#3f6b3a","#a0762a","#3a5a8a","#6b4a3a"];
-function colorFor(s) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return COLORS[h % COLORS.length]; }
-function prettyTitle(name) { return name.replace(/\.pdf$/i, "").replace(/[_]+/g, " ").replace(/\s+-\s+/g, " — ").replace(/\s+/g, " ").trim(); }
-function fmtSize(b) { return b > 1048576 ? (b / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1024)) + " KB"; }
-function esc(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+/* Turn a catalog entry into { read, download, embed } links */
+function resolve(b) {
+  if (b.drive) return {
+    read: `https://drive.google.com/file/d/${b.drive}/view`,
+    embed: `https://drive.google.com/file/d/${b.drive}/preview`,
+    download: `https://drive.google.com/uc?export=download&id=${b.drive}`
+  };
+  if (b.file) {
+    const u = b.file.split("/").map(encodeURIComponent).join("/");
+    return { read: u, embed: u, download: u };
+  }
+  if (b.url) return { read: b.url, embed: b.embed || null, download: b.url };
+  return { read: "#", embed: null, download: "#" };
+}
 
 let books = [];
-
-function render() {
-  const q = document.getElementById("q").value.toLowerCase();
-  const list = books.filter(b => b.title.toLowerCase().includes(q));
-  document.getElementById("grid").innerHTML = list.map(b => `
-    <div class="book">
-      <div class="cover" style="background:${colorFor(b.title)}">${esc(b.title)}</div>
-      <div class="info">
-        <div class="title">${esc(b.title)}</div>
-        <div class="size">${fmtSize(b.size)}</div>
-        <div class="actions">
-          <a class="read" href="${b.url}" target="_blank" rel="noopener">Read</a>
-          <a class="dl" href="${b.url}" download>Download</a>
-        </div>
-      </div>
-    </div>`).join("");
-  const msg = document.getElementById("msg");
-  msg.style.display = list.length ? "none" : "block";
-  if (!list.length) msg.textContent = books.length ? "No books match your search." : "No books yet — add PDFs to the books/ folder.";
-  document.getElementById("count").textContent = books.length ? books.length + " book" + (books.length > 1 ? "s" : "") : "";
-}
+const state = { q: "", topic: "All", sort: "title", view: store.get(VIEW_KEY, "grid") };
 
 async function load() {
-  const msg = document.getElementById("msg");
-  const cfg = detectRepo();
-  if (!cfg) { msg.textContent = "Set owner and repo in CONFIG at the top of the script in index.html."; return; }
+  renderSkeleton();
+  let catalog = [];
   try {
-    const branchQ = cfg.branch ? "?ref=" + encodeURIComponent(cfg.branch) : "";
-    const res = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${cfg.folder}${branchQ}`);
-    if (!res.ok) throw new Error(res.status);
-    const files = await res.json();
-    books = files
-      .filter(f => f.type === "file" && /\.pdf$/i.test(f.name))
-      .map(f => ({ title: prettyTitle(f.name), size: f.size, url: `${cfg.folder}/${encodeURIComponent(f.name)}` }))
-      .sort((a, b) => a.title.localeCompare(b.title));
-    render();
-  } catch (e) {
-    msg.textContent = "Couldn't load the book list (GitHub may be rate-limiting). Try again in a bit.";
+    const r = await fetch(CONFIG.catalog, { cache: "no-cache" });
+    if (r.ok) catalog = await r.json();
+  } catch {}
+
+  // Pick up PDFs uploaded to books/ that aren't catalogued yet.
+  const cfg = detectRepo();
+  if (cfg) {
+    try {
+      const q = cfg.branch ? "?ref=" + encodeURIComponent(cfg.branch) : "";
+      const r = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${cfg.folder}${q}`);
+      if (r.ok) {
+        const files = (await r.json()).filter(f => f.type === "file" && /\.pdf$/i.test(f.name));
+        const known = new Map(catalog.filter(b => b.file).map(b => [b.file, b]));
+        for (const f of files) {
+          const path = `${cfg.folder}/${f.name}`;
+          if (known.has(path)) known.get(path).size ??= f.size;
+          else catalog.push({ title: prettyTitle(f.name), file: path, size: f.size, topics: ["Uncatalogued"] });
+        }
+      }
+    } catch {}
   }
+
+  books = catalog.filter(b => b && b.title).map(b => ({
+    ...b, topics: b.topics?.length ? b.topics : ["General"], id: b.file || b.url || b.drive || b.title, links: resolve(b)
+  }));
+  books.forEach(b => {
+    b.color = b.color || PALETTE[hash(b.title) % PALETTE.length];
+    b.glyph = b.glyph || GLYPHS[b.topics[0]] || "π";
+    b.search = [b.title, b.subtitle, b.author, ...b.topics, b.note].join(" ").toLowerCase();
+  });
+  renderChips(); renderStats(); render();
 }
 
-document.getElementById("q").addEventListener("input", render);
-load();
+function coverHTML(b) {
+  return `<div class="cover" style="--c:${esc(b.color)}" aria-hidden="true">
+    <span class="glyph">${esc(b.glyph)}</span>
+    <div class="rule"></div>
+    <div class="ct">${esc(b.title)}</div>
+    ${b.subtitle ? `<div class="cs">${esc(b.subtitle)}</div>` : ""}
+    <div class="ca">${esc(b.author || "")}</div>
+  </div>`;
+}
+
+function renderSkeleton() {
+  $("#grid").innerHTML = Array.from({ length: 6 }, () =>
+    `<div class="book sk"><div class="cover"></div><div><div class="bar" style="width:80%"></div><div class="bar" style="width:50%"></div></div></div>`).join("");
+}
+
+function renderStats() {
+  const pages = books.reduce((s, b) => s + (b.pages || 0), 0);
+  const topics = new Set(books.flatMap(b => b.topics));
+  $("#stats").innerHTML = `<span><b>${books.length}</b> books</span>` +
+    (pages ? `<span><b>${pages.toLocaleString()}</b> pages</span>` : "") +
+    `<span><b>${topics.size}</b> topics</span>`;
+  $("#foot").textContent = `${books.length} book${books.length === 1 ? "" : "s"} on the shelf`;
+}
+
+function renderChips() {
+  const counts = {};
+  books.forEach(b => b.topics.forEach(t => counts[t] = (counts[t] || 0) + 1));
+  const topics = ["All", ...Object.keys(counts).sort()];
+  if (!topics.includes(state.topic)) state.topic = "All";
+  $("#chips").innerHTML = topics.map(t =>
+    `<button class="chip" data-topic="${esc(t)}" aria-pressed="${t === state.topic}">${esc(t)}<span>${t === "All" ? books.length : counts[t]}</span></button>`).join("");
+}
+
+function sorted(list) {
+  const recent = store.get(RECENT_KEY, []);
+  const by = {
+    title: (a, b) => a.title.localeCompare(b.title),
+    author: (a, b) => (a.author || "~").localeCompare(b.author || "~") || a.title.localeCompare(b.title),
+    year: (a, b) => (a.year || 9999) - (b.year || 9999),
+    pages: (a, b) => (a.pages || 1e9) - (b.pages || 1e9),
+    recent: (a, b) => {
+      const ia = recent.indexOf(a.id), ib = recent.indexOf(b.id);
+      return (ia < 0 ? 1e9 : ia) - (ib < 0 ? 1e9 : ib) || a.title.localeCompare(b.title);
+    }
+  };
+  return [...list].sort(by[state.sort] || by.title);
+}
+
+function render() {
+  const q = state.q.trim().toLowerCase();
+  const terms = q.split(/\s+/).filter(Boolean);
+  const list = sorted(books.filter(b =>
+    (state.topic === "All" || b.topics.includes(state.topic)) && terms.every(t => b.search.includes(t))));
+
+  const grid = $("#grid");
+  grid.classList.toggle("list", state.view === "list");
+  $("#gridBtn").setAttribute("aria-pressed", state.view === "grid");
+  $("#listBtn").setAttribute("aria-pressed", state.view === "list");
+
+  grid.innerHTML = list.map(b => {
+    const d = [b.year, b.pages && `${b.pages} pp`, b.size && fmtSize(b.size)].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join("");
+    return `<article class="book">
+      <button class="cover-btn" data-read="${esc(b.id)}" aria-label="Read ${esc(b.title)}">${coverHTML(b)}</button>
+      <div class="meta">
+        <div class="t">${esc(b.title)}</div>
+        ${b.author ? `<div class="a">${esc(b.author)}</div>` : ""}
+        ${d ? `<div class="d">${d}</div>` : ""}
+        ${b.note ? `<div class="note">${esc(b.note)}</div>` : ""}
+      </div>
+      <div class="actions">
+        <a class="btn primary" href="${esc(b.links.read)}" data-read="${esc(b.id)}" target="_blank" rel="noopener">Read</a>
+        <a class="btn" href="${esc(b.links.download)}" ${b.file ? "download" : 'target="_blank" rel="noopener"'} aria-label="Download ${esc(b.title)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
+          <span class="lbl-long">Download</span></a>
+      </div>
+    </article>`;
+  }).join("");
+
+  const empty = $("#empty");
+  empty.hidden = list.length > 0;
+  if (!list.length) empty.innerHTML = books.length
+    ? `No books match “${esc(state.q || state.topic)}”.<br><button class="btn" id="clearBtn">Clear filters</button>`
+    : `The shelf is empty — add PDFs to <code>books/</code> and list them in <code>books.json</code>.`;
+  $("#shown").textContent = list.length !== books.length ? `${list.length} of ${books.length}` : "";
+  $("#shelfTitle").firstChild.textContent = state.topic === "All" ? "All books " : state.topic + " ";
+  renderRecent();
+}
+
+function renderRecent() {
+  const ids = store.get(RECENT_KEY, []);
+  const items = ids.map(id => books.find(b => b.id === id)).filter(Boolean).slice(0, 6);
+  const show = items.length > 0 && !state.q && state.topic === "All";
+  $("#recent").hidden = !show;
+  if (!show) return;
+  $("#recentRow").innerHTML = items.map(b => `
+    <button class="recent-item" data-read="${esc(b.id)}">
+      ${coverHTML(b)}
+      <div><div class="t">${esc(b.title)}</div><div class="a">${esc(b.author || "")}</div></div>
+    </button>`).join("");
+}
+
+function markRecent(id) {
+  const r = store.get(RECENT_KEY, []).filter(x => x !== id);
+  r.unshift(id); store.set(RECENT_KEY, r.slice(0, 12));
+}
+
+/* ---------- Reader ---------- */
+const dlg = $("#reader");
+function openBook(id, ev) {
+  const b = books.find(x => x.id === id);
+  if (!b) return;
+  markRecent(id);
+  // Phones can't render PDFs inside an iframe (Drive preview can), so hand off to the native viewer.
+  const canEmbed = b.links.embed && (b.drive || !isMobile()) && typeof dlg.showModal === "function";
+  if (!canEmbed) {
+    // A "Read" link opens itself; a cover click needs a new tab.
+    if (!ev?.currentTarget?.href) window.open(b.links.read, "_blank", "noopener");
+    setTimeout(renderRecent, 0);
+    return;
+  }
+  ev?.preventDefault();
+  $("#rTitle").textContent = b.title;
+  $("#rAuthor").textContent = [b.author, b.pages && b.pages + " pages"].filter(Boolean).join(" · ");
+  $("#rOpen").href = b.links.read;
+  $("#rDl").href = b.links.download;
+  b.file ? $("#rDl").setAttribute("download", "") : $("#rDl").removeAttribute("download");
+  $("#rFrame").src = b.links.embed;
+  dlg.showModal();
+  history.replaceState(null, "", "#" + encodeURIComponent(id));
+  renderRecent();
+}
+function closeBook() {
+  dlg.close();
+}
+dlg.addEventListener("close", () => {
+  $("#rFrame").src = "about:blank";
+  history.replaceState(null, "", location.pathname + location.search);
+  if (state.sort === "recent") render();
+});
+$("#rClose").addEventListener("click", closeBook);
+
+/* ---------- Events ---------- */
+document.addEventListener("click", e => {
+  const r = e.target.closest("[data-read]");
+  if (r) return openBook(r.dataset.read, { currentTarget: r, preventDefault: () => e.preventDefault() });
+  const chip = e.target.closest(".chip");
+  if (chip) { state.topic = chip.dataset.topic; renderChips(); render(); return; }
+  if (e.target.id === "clearBtn") { state.q = ""; state.topic = "All"; $("#q").value = ""; renderChips(); render(); }
+});
+$("#q").addEventListener("input", e => { state.q = e.target.value; render(); });
+$("#sort").addEventListener("change", e => { state.sort = e.target.value; render(); });
+$("#gridBtn").addEventListener("click", () => { state.view = "grid"; store.set(VIEW_KEY, "grid"); render(); });
+$("#listBtn").addEventListener("click", () => { state.view = "list"; store.set(VIEW_KEY, "list"); render(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "/" && !dlg.open && document.activeElement.tagName !== "INPUT") { e.preventDefault(); $("#q").focus(); }
+  if (e.key === "Escape" && document.activeElement === $("#q") && $("#q").value) { $("#q").value = ""; state.q = ""; render(); }
+});
+
+/* ---------- Theme ---------- */
+const savedTheme = store.get(THEME_KEY, null);
+if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+$("#themeBtn").addEventListener("click", () => {
+  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const next = cur === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next; store.set(THEME_KEY, next);
+});
+
+load().then(() => {
+  const id = decodeURIComponent(location.hash.slice(1));
+  if (id && books.some(b => b.id === id) && !isMobile()) openBook(id);
+});
 </script>
 </body>
 </html>
